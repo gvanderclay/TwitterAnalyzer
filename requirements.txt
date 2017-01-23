@@ -1,2 +1,3 @@
-tweepy
+tweepy==3.5.0
 nltk
+pyyaml
