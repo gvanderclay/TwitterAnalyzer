@@ -11,7 +11,7 @@ class TwitterStream:
         self.stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
 
     def begin_stream(self):
-        self.stream.filter(track=["trump"])
+        self.stream.filter(track=["Happy"])
 
 
 if __name__ == "__main__":

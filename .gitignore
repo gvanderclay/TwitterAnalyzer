@@ -90,3 +90,4 @@ ENV/
 
 config/twitter_creds.yml
 twit_data.db
+TwitterAnalysis/pickles/*

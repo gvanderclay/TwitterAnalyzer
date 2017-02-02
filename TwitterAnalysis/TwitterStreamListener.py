@@ -21,7 +21,7 @@ class TwitterStreamListener(tweepy.StreamListener):
             return True
         except KeyError as k:
             print(k)
-            pass
+            return True
 
     def on_error(self, status_code):
         # TODO properly handle http errors

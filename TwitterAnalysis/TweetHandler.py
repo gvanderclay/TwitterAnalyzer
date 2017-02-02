@@ -1,3 +1,6 @@
+from Trainer import sentiment
+
+
 class TweetHandler:
     def __init__(self, conn):
         # init sql connection
@@ -8,16 +11,22 @@ class TweetHandler:
         """
         Save the tweet to the database
         """
-        self.cursor.execute(
-            "INSERT INTO tweet_data VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (tweet["id_str"], tweet["text"], tweet["created_at"],
-             tweet["favorite_count"], tweet["lang"], tweet["retweet_count"],
-             tweet["coordinates"], 0))
-        self.conn.commit()
+        sentiment_value, confidence = sentiment(tweet["text"])
+        if self.filter_tweet(tweet, confidence):
+            print(tweet["text"])
+            print(confidence, ":", sentiment_value)
+            self.cursor.execute(
+                "INSERT INTO tweet_data VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (tweet["id_str"], tweet["text"], tweet["created_at"],
+                 tweet["favorite_count"], tweet["lang"],
+                 tweet["retweet_count"], tweet["coordinates"],
+                 sentiment_value))
+            self.conn.commit()
 
-    def filter_tweet(tweet):
+    def filter_tweet(self, tweet, confidence):
         """
         Function that will decide what tweets to actually save
         TODO decide how to filter tweets and actually use this function
         """
-        return True
+        return confidence > .8 and not tweet["text"].startswith(
+            "RT") and tweet["lang"] == "en"
