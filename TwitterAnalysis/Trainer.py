@@ -2,7 +2,7 @@ import os
 import nltk
 import pickle
 from nltk.corpus import twitter_samples
-from nltk.tokenize import word_tokenize
+from nltk.tokenize.casual import TweetTokenizer
 import random
 from nltk.classify.scikitlearn import SklearnClassifier
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB
@@ -13,6 +13,10 @@ from Classifier import VoteClassifier
 #  j is adject, r is adverb, and v is verb
 ALLOWED_WORD_TYPES = ["J", "R", "V"]
 PROJECT_ROOT = os.path.dirname(__file__)
+
+# tokenizer that is aware of twitter strings
+# http://www.nltk.org/api/nltk.tokenize.html#module-nltk.tokenize.casual
+tokenizer = TweetTokenizer(strip_handles=True)
 
 
 # puts all words from the twitter samples into an array
@@ -65,7 +69,8 @@ def get_word_features():
 
 
 def find_features(document, all_words, word_features):
-    words = word_tokenize(document)
+    # updated tokenizer that is aware of weird twitter strings
+    words = tokenizer.tokenize(document)
     return {w: (w in words) for w in word_features}
 
 
@@ -116,5 +121,5 @@ def sentiment(text):
 
 
 if __name__ == "__main__":
-    test = "Memes keep me alive"
-    print(sentiment(test))
+    tweet = "Happy birthday you wonderful person!"
+    print(sentiment(tweet))

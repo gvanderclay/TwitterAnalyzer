@@ -1,16 +1,12 @@
 import tweepy
-import yaml
 import json
-import sqlite3
 from TweetHandler import TweetHandler
 
 
 class TwitterStreamListener(tweepy.StreamListener):
     def __init__(self):
         # grab db info
-        db_info = yaml.safe_load(open("config/db.yml"))
-        conn = sqlite3.connect(db_info["database_name"])
-        self.tweet_handler = TweetHandler(conn)
+        self.tweet_handler = TweetHandler()
 
     def on_data(self, data):
         # TODO properly handle exceptions

@@ -1,19 +1,50 @@
+from threading import Thread
 from Trainer import sentiment
+import yaml
+import sqlite3
+from queue import Queue
+
+queue = Queue()
 
 
-class TweetHandler:
-    def __init__(self, conn):
+class TweetHandler():
+    def __init__(self):
         # init sql connection
-        self.conn = conn
-        self.cursor = self.conn.cursor()
+        TweetConsumer().start()
+
+    def save_tweet(self, tweet):
+        """
+        Save the tweet to the database
+        """
+        queue.put(tweet)
+
+
+class TweetConsumer(Thread):
+    def __init__(self):
+        # init sql connection
+        super(TweetConsumer, self).__init__()
+        self.db_name = yaml.safe_load(open("config/db.yml"))["database_name"]
+
+    def run(self):
+        global queue
+        while True:
+            self.conn = sqlite3.connect(self.db_name)
+            self.cursor = self.conn.cursor()
+            data = queue.get()
+            try:
+                self.save_tweet(data)
+            except KeyError:
+                pass
+            queue.task_done()
 
     def save_tweet(self, tweet):
         """
         Save the tweet to the database
         """
         sentiment_value, confidence = sentiment(tweet["text"])
+        text = tweet["text"]
         if self.filter_tweet(tweet, confidence):
-            print(tweet["text"])
+            print(text)
             print(confidence, ":", sentiment_value)
             self.cursor.execute(
                 "INSERT INTO tweet_data VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
