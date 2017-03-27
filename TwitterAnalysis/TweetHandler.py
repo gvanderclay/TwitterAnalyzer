@@ -20,7 +20,7 @@ class TweetHandler():
         if self.filter_tweet(tweet, confidence):
             print(text)
             print(confidence, ":", sentiment_value)
-            if (confidence * 100 >= 80):
+            if (confidence * 100 >= 70):
                 output = open("twitter-out.txt", "a")
                 output.write(sentiment_value)
                 output.write('\n')
