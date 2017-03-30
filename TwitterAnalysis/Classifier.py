@@ -10,6 +10,7 @@ class VoteClassifier(ClassifierI):
         votes = []
         for c in self._classifiers:
             v = c.classify(features)
+            print(v)
             votes.append(v)
         return mode(votes)
 
