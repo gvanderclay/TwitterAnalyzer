@@ -16,7 +16,7 @@ from sklearn.svm import SVC, LinearSVC, NuSVC
 from Classifier import VoteClassifier
 
 #  j is adject, r is adverb, and v is verb
-# ALLOWED_WORD_TYPES = ["J", "R", "V"]
+ALLOWED_WORD_TYPES = ["J", "R", "V"]
 PROJECT_ROOT = os.path.dirname(__file__)
 
 # tokenizer that is aware of twitter strings
@@ -53,8 +53,8 @@ def get_all_words_and_documents():
             pos = nltk.pos_tag(tokens)
             for w in pos:
                 # TODO should we get rid of POS filtering
-                # if w[1][0] in ALLOWED_WORD_TYPES:
-                all_words.append(w[0].lower())
+                if w[1][0] in ALLOWED_WORD_TYPES:
+                    all_words.append(w[0].lower())
     for directory in ['positive', 'negative']:
         for filename in os.listdir(directory):
             i = 0
@@ -63,12 +63,14 @@ def get_all_words_and_documents():
             print("Analyzing " + filename)
             for tweet in file:
                 i += 1
+                tweet = tweet.replace(":)", "")
+                tweet = tweet.replace(":(", "")
                 documents.append((tweet, directory[:3]))
                 pos = nltk.pos_tag(tweet)
                 for w in pos:
                     # TODO should we get rid of POS filtering
-                    # if w[1][0] in ALLOWED_WORD_TYPES:
-                    all_words.append(w[0].lower())
+                    if w[1][0] in ALLOWED_WORD_TYPES:
+                        all_words.append(w[0].lower())
                 if i == 10000:
                     print("Reached 10000")
                     file.close()
@@ -141,7 +143,7 @@ def get_word_features():
     print("Getting word features")
     all_words = get_all_words_and_documents()[0]
     all_words = nltk.FreqDist(all_words)
-    word_features = list(all_words.keys())[:15000]
+    word_features = list(all_words.keys())[:5000]
     save_data(word_features, "word_features")
     return word_features
 
@@ -150,22 +152,21 @@ def get_word_features():
 def find_features(document):
     # updated tokenizer that is aware of weird twitter strings
     words = tokenizer.tokenize(document)
-    print(words)
     word_features = get_word_features()
     features = {w: (w in words) for w in word_features}
     return features
 
 
-def create_feature_sets():
+def create_feature_sets(documents=None):
     print("Creating features sets")
-    if data_exists("documents"):
+    if documents is None:
+        pass
+    elif data_exists("documents"):
         documents = get_documents()
     else:
         documents = get_all_words_and_documents()[1]
     print("Creating feature_sets")
     return apply_features(find_features, documents, labeled=True)
-    # return [(find_features(rev), category)
-    #         for (rev, category) in documents]
 
 
 class Trainer(object):
@@ -182,9 +183,14 @@ class Trainer(object):
         return c
 
 
-def create_andclassifiers():
+def create_classifiers():
     classes = [
-        MultinomialNB, BernoulliNB, LogisticRegression, SVC, LinearSVC, NuSVC,
+        MultinomialNB,
+        BernoulliNB,
+        LogisticRegression,
+        SVC,
+        LinearSVC,
+        NuSVC,
         SGDClassifier
     ]
     all_exist = all(map(lambda c: data_exists(c.__name__), classes))
@@ -220,7 +226,7 @@ def create_voted_classifier(classifiers):
 
 
 def sentiment(text):
-    classifiers = create_andclassifiers()
+    classifiers = create_classifiers()
     voted_classifier = create_voted_classifier(classifiers)
     feats = find_features(text)
     return voted_classifier.classify(feats), voted_classifier.confidence(feats)
